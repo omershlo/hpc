@@ -3,6 +3,7 @@
 #include "sha_utils.h"
 #include "rounds_90_105.h"
 #include <syslog.h>
+#include <sstream>
 
 #define TEST_DUPLICATES
 #undef TEST_DUPLICATES
@@ -18,7 +19,7 @@ std::chrono::duration<double> elapsedSecondsTotal;
 std::chrono::seconds secs(30);
 int *gNumberOfCorrections;
 correctionSet **gEquationCorrections;
-setlogmask (LOG_UPTO (LOG_NOTICE));
+//setlogmask (LOG_UPTO (LOG_NOTICE));
 
 // int *gNuMOfCorr;
 // correctionSet **gEquCorr;
@@ -28,7 +29,13 @@ int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	u32 M5to15[11];
 	FILE *results_fp;
-	const char* results_file_name = "../sha_common_files/files/results";
+	time_t t = time(0);   // get time now
+	struct tm tm = *localtime( & t );
+	char datum[128];
+	sprintf(datum, "../sha_common_files/files/results-%d-%d-%dT%d:%d:%d", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	printf("%s\n", datum);
+	const char* results_file_name = datum;//"../sha_common_files/files/results-" + tts;
+	cout << results_file_name << endl;
 	int threshold1_print_level = 120;
 	//int numOfMessages = 100000;
 	int lastEquToCorrect = 142;
@@ -175,10 +182,13 @@ int main(int argc, char* argv[]) {
 				if((std::chrono::system_clock::now()- start) > secs)
 				{
 					results_fp = fopen(results_file_name, "a+");
-					for(int u=0;u<levHistSize;u++){fprintf(results_fp, "%u ", accuArr[u]);}
+					//openlog ("exampleprog", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+					for(int u=0;u<levHistSize;u++){
+						fprintf(results_fp, "%u ", accuArr[u]);
+					//	syslog (LOG_INFO, "%u ", accuArr[u]);
+					}
 					fprintf(results_fp, "\n");
-					openlog ("exampleprog", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-					syslog (LOG_INFO, "%u ", accuArr[u]);
+					//syslog (LOG_INFO, "\n");
 					//syslog (LOG_INFO, "A tree falls in a forest");	
 					closelog ();
 					
