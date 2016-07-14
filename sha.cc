@@ -2,8 +2,8 @@
 #include "duplicates.h"
 #include "sha_utils.h"
 #include "rounds_90_105.h"
-#include <syslog.h>
 #include <sstream>
+#include <unistd.h>
 
 #define TEST_DUPLICATES
 #undef TEST_DUPLICATES
@@ -26,13 +26,16 @@ correctionSet **gEquationCorrections;
 
 const int equationsToRead[] = {49, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67,	68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,	86, 87, 88, 89 };
 int main(int argc, char* argv[]) {
-	srand(time(NULL));
+	int pid = getpid();
+	srand(time(NULL)+pid*1000);
+	char host[50];
+	gethostname(host, 50);
 	u32 M5to15[11];
 	FILE *results_fp;
 	time_t t = time(0);   // get time now
 	struct tm tm = *localtime( & t );
 	char datum[128];
-	sprintf(datum, "../sha_common_files/files/results-%d-%d-%dT%d:%d:%d", tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	sprintf(datum, "../sha_common_files/files/results-pid:%d-%d-%d-%dT%d:%d:%d", pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	printf("%s\n", datum);
 	const char* results_file_name = datum;//"../sha_common_files/files/results-" + tts;
 	cout << results_file_name << endl;
@@ -181,16 +184,15 @@ int main(int argc, char* argv[]) {
 				}
 				if((std::chrono::system_clock::now()- start) > secs)
 				{
+
 					results_fp = fopen(results_file_name, "a+");
-					//openlog ("exampleprog", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+					time_t t = time(0);   // get time now
+					struct tm tm = *localtime( & t );
+					fprintf(results_fp, "host: %s lastEqToCorrect: %d Thresh: %d pid:%d %d-%d-%dT%d:%d:%d   ", host, lastEquToCorrect, threshold1_print_level, pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 					for(int u=0;u<levHistSize;u++){
 						fprintf(results_fp, "%u ", accuArr[u]);
-					//	syslog (LOG_INFO, "%u ", accuArr[u]);
 					}
 					fprintf(results_fp, "\n");
-					//syslog (LOG_INFO, "\n");
-					//syslog (LOG_INFO, "A tree falls in a forest");	
-					closelog ();
 					
 					//fprintf(stderr, "%u ", accuArr[u]);
 
@@ -217,10 +219,8 @@ int main(int argc, char* argv[]) {
 #if STATISTICS & MEASURE_CORRECTIONS_PROBABILITY
 	char statcorrfilename[100] = { 0 };
 //	char host[50];
-	pid_t pid = 0;
-	//gethostname(host, 50);
-	char * host = "localhost";
-	pid = getpid();
+//	gethostname(host, 50);
+	//char * host = "localhost";
 	sprintf(statcorrfilename,"../sha_common_files/corr_prob/actual_correction:%s:%d", host,(unsigned) pid);
 	compute_and_print_corrections_statistics(statcorrfilename, gEquationCorrections, gNumberOfCorrections, false);
 //	compute_and_print_corrections_statistics_test(gEquCorr[0], gNuMOfCorr[0],true);
