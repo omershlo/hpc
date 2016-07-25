@@ -18,7 +18,7 @@ bool mod_5_10(SHA1& ref, u32 xorDiff, bool wOrState, ReducedSha& baseMsg);
 int modifyAndUpdate_6(SHA1& ref, u32 xorDiff, ReducedSha& baseMsg);
 int modifyAndUpdate_6_bit8(SHA1& ref, u32 xorDiff, ReducedSha& baseMsg);
 bool mod_6(SHA1& ref, u32 xorDiff, bool wOrState, ReducedSha& baseMsg);
-bool mod_6(SHA1& ref, u32 xorDiff, ReducedSha& baseMsg, int& roundToStart);
+//bool mod_6(SHA1& ref, u32 xorDiff, ReducedSha& baseMsg, int& roundToStart);
 bool mod_6_8(SHA1& ref, u32 xorDiff6, u32 xorDiff8, bool wOrState8, ReducedSha& baseMsg);
 bool mod_6_9(SHA1& ref, u32 xorDiff6, u32 xorDiff9, bool wOrState9, ReducedSha& baseMsg);
 bool mod_6_10(SHA1& ref, u32 xorDiff6, u32 xorDiff10, bool wOrState10, ReducedSha& baseMsg);
@@ -34,7 +34,7 @@ bool mod_9(SHA1& ref, u32 xorDiff9, bool wOrState9, ReducedSha& baseMsg);
 bool mod_9(SHA1& ref, u32 stateXorDiff, ReducedSha& baseMsg);
 bool mod_9_op(SHA1& ref, u32 stateXorDiff, bool wOrState, ReducedSha& baseMsg);
 bool mod_9_14(SHA1& ref, u32 stateXorDiff9, bool wOrState9, u32 stateXorDiff14, bool wOrState14, ReducedSha& baseMsg);
-bool mod_9_14(SHA1& ref, u32 stateXorDiff, ReducedSha& baseMsg);
+bool mod_9_14(SHA1& ref, u32 stateXorDiff, bool wOrState, ReducedSha& baseMsg);
 bool mod_9_14(SHA1& ref, u32 stateXorDiff1, u32 stateXorDiff2, ReducedSha& baseMsg);
 bool mod_10(SHA1& ref, u32 xorDiff, bool wOrState, ReducedSha& baseMsg);//wOrState = true => w
 bool mod_10_13(SHA1& ref, u32 xorDiff10, bool wOrState10, u32 xorDiff13, bool wOrState13, ReducedSha& baseMsg);

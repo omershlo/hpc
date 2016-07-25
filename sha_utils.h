@@ -17,9 +17,11 @@ uint64_t rdtsc();
 #define FIRST_CONF_TO_RECORD 80
 #define NUMBER_OF_NEUTRALS_TO_RECURSE 17
 
+bool solve89_v1(SHA1& ref);
+void verify_conformance(SHA1& ref);
 void c_compute_state(SHA1 &ref, int round);
 int  c_check_Inequality(SHA1 &base, SHA1 &comparedTo, int upToRound);
-
+void print_second_message(SHA1& ref);
 void conformance_counter(int conformance);
 void compute_and_print_equations_statistics(int *uncorrected, int *corrected, const char *statisticsFileName);
 void rs_pause();

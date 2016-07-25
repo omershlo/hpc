@@ -1,5 +1,86 @@
 #include "sha_utils.h"
 
+void verify_conformance(SHA1& ref){
+	SHA1 tmp = ref;
+	tmp.updatedToRound_setter() = 4;
+	tmp.check_conformance_no_aux(36);
+	if(tmp.firstUnsatisfiedEquation_getter()<90)
+		fprintf(stderr,"%d\n", tmp.firstUnsatisfiedEquation_getter());
+	if(tmp.firstUnsatisfiedEquation_getter() != ref.firstUnsatisfiedEquation_getter()){
+		tmp.compare_duo_Sha1ParameterNotUpdated(ref, 5, 20, stderr);
+		fprintf(stderr, "%d %d\n", tmp.firstUnsatisfiedEquation_getter(), ref.firstUnsatisfiedEquation_getter());
+		rs_pause();
+	}
+}
+
+void print_second_message(SHA1& ref){
+	u32 dc[16] = {0x26000014, 0x2600001A, 0x00000010, 0x0400001C, 0xCC000014, 0x0C000002, 0xC0000010, 0xB400001C,
+	              0x3C000004, 0xBC00001A, 0x20000010, 0x2400001C, 0xEC000014, 0x0C000002, 0xC0000010, 0xB400001C};
+	SHA1 secondMSG=ref;
+//a(-4,...,-1} = {0xb08f1943, 0xb8ca93f5, 0xbc06dffd, 0xa439992f}
+//a30(-4,...,0} = = {0xec23c650, 0x6e32a4fd, 0x6f01b7ff, 0xe90e664b};
+	//secondMSG.updatedToRound_setter() = 15;
+//                                          -4        -3          -2           -1         0
+//                                           0         1           2            3         4
+	u32 a_iv[5] = {0xb08f1943, 0xb8ca93f5, 0xbc06dffd, 0xa439992f, 0x13d15c13};
+	u32* pa_iv = a_iv + 4;
+	u32 a_iv_5[5];
+	u32* pa_iv_5 = a_iv_5 + 4;
+	u32 a_iv_30[5];
+	u32* pa_iv_30 = a_iv_30 + 4;
+	for(int i = 0; i < 5; i++){
+		a_iv_5[i] = ROTATE(a_iv[i], 5);
+		a_iv_30[i] = ROTATE(a_iv[i], 30);
+	}
+	for(int ff=0;ff<16;ff++)
+	{
+		secondMSG.mW[ff] ^= dc[ff];
+	}
+
+	secondMSG.mF[0] = F_00_19(pa_iv[-1], pa_iv_30[-2], pa_iv_30[-3]);
+	secondMSG.mK[0] = K_00_19 + pa_iv_5[0] + secondMSG.mF[0] + pa_iv_30[-4];
+	secondMSG.mA[1]   = secondMSG.mW[0] + secondMSG.mK[0];
+	secondMSG.mA5[1] = ROTATE(secondMSG.mA[1],5);
+	secondMSG.mA30[1] = ROTATE(secondMSG.mA[1],30);
+
+	secondMSG.mF[1] = F_00_19(pa_iv[0], pa_iv_30[-1], pa_iv_30[-2]);
+	secondMSG.mK[1] = K_00_19 + secondMSG.mA5[1] + secondMSG.mF[1] + pa_iv_30[-3];
+	secondMSG.mA[2]   = secondMSG.mW[1] + secondMSG.mK[1];
+	secondMSG.mA5[2] = ROTATE(secondMSG.mA[2],5);
+	secondMSG.mA30[2] = ROTATE(secondMSG.mA[2],30);
+
+	secondMSG.mF[2] = F_00_19(secondMSG.mA[1], pa_iv_30[0], pa_iv_30[-1]);
+	secondMSG.mK[2] = K_00_19 + secondMSG.mA5[2] + secondMSG.mF[2] + pa_iv_30[-2];
+	secondMSG.mA[3] = secondMSG.mW[2] + secondMSG.mK[2];
+	secondMSG.mA5[3] = ROTATE(secondMSG.mA[3],5);
+	secondMSG.mA30[3] = ROTATE(secondMSG.mA[3],30);
+
+	secondMSG.mF[3] = F_00_19(secondMSG.mA[2], secondMSG.mA30[1], pa_iv_30[0]);
+	secondMSG.mK[3] = K_00_19 + secondMSG.mA5[3] + secondMSG.mF[3] + pa_iv_30[-1];
+	secondMSG.mA[4] = secondMSG.mW[3] + secondMSG.mK[3];
+	secondMSG.mA5[4] = ROTATE(secondMSG.mA[4],5);
+	secondMSG.mA30[4] = ROTATE(secondMSG.mA[4],30);
+
+	secondMSG.mF[4] = F_00_19(secondMSG.mA[3], secondMSG.mA30[2], secondMSG.mA30[1]);
+	secondMSG.mK[4] = K_00_19 + secondMSG.mA5[4] + secondMSG.mF[4] + pa_iv_30[0];
+	secondMSG.mA[5] = secondMSG.mW[4] + secondMSG.mK[4];
+	secondMSG.mA5[5] = ROTATE(secondMSG.mA[5],5);
+	secondMSG.mA30[5] = ROTATE(secondMSG.mA[5],30);
+
+	for(int i = 5; i < 20; i++){
+		secondMSG.mF[i] = F_00_19(secondMSG.mA[i-1], secondMSG.mA30[i-2], secondMSG.mA30[i-3]);
+		secondMSG.mK[i] = K_00_19 + secondMSG.mA5[i] + secondMSG.mF[i] + secondMSG.mA30[i-4];
+		secondMSG.mA[i+1] = secondMSG.mW[i] + secondMSG.mK[i];
+		secondMSG.mA5[i+1] = ROTATE(secondMSG.mA[i+1],5);
+		secondMSG.mA30[i+1] = ROTATE(secondMSG.mA[i+1],30);
+	}
+
+	secondMSG.mUpdatedToRound = 15;
+
+	secondMSG.compare_duo_Sha1ParameterNotUpdated(ref, 0, 30, stderr);
+	rs_pause();
+}
+
 void conformance_counter(int conformance){
 	static int c[140];
 	static int total;

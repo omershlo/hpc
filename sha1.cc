@@ -7,6 +7,25 @@
 
 ReducedSha m;
 
+void SHA1::print_message(FILE *fp)
+{
+	for(int i = 5; i < 16; i++)
+		fprintf(fp, "%08x ",mW[i]);
+	fprintf(fp, "\n");
+	fflush(fp);
+	return;
+}
+
+void SHA1::print_message(char* path, int firstUnSatisfied)
+{
+	char fileName[100];
+	sprintf(fileName, "%s%d", path,firstUnSatisfied);
+	FILE *fp = fopen(fileName, "a");
+	print_message(fp);
+	fclose(fp);
+	return;
+}
+
 bool check_for_duplicates(Key message, messageID id, messageID& alreadyInId, mHashTable& hashTable)
 {
 	std::pair<mHashTable::iterator, bool> returnedValue;
@@ -453,145 +472,145 @@ bool SHA1::correct_message_up_to_equation(int equ)
 	}
 	return isCorrected;
 }
-//#undef TEST_DUPLICATES
-//#ifdef TEST_DUPLICATES
-//int SHA1::correct_message_up_to_equation(int equ, mHashTable& baseHashTable, messageID& alreadyInID)
-//{
-//	//	static i64 t0;
-//	//	static i64 t1;
-//
-//	//	std::chrono::time_point<std::chrono::system_clock> start, end;
-//	//	extern std::chrono::duration<double> elapsedSeconds;
-//	//	extern std::chrono::duration<double> elapsedSecondsTotal;
-//	int equToCorrect = firstUnsatisfiedEquation_getter();
-//	if(equToCorrect >= equ)
-//		return 1;
-//	Key currMessage;//the message we want to insert
-//	bool isCorrected = true;
-//	SHA1 modifiedMessage;
-//	id[4] = equToCorrect;
-//#ifdef DEBUG
-//	SHA1 tmp = *this;
-//	tmp = *this;
-//	tmp.updatedToRound_setter() = 4;
-//	tmp.check_conformance_no_aux(12);
-//	if(tmp.firstUnsatisfiedEquation_getter() < 70){
-//		rs_pause();
-//	}
-//#endif
-//	while(firstUnsatisfiedEquation_getter() < equ)
-//	{
-//		for(int i = 0; i < 11; i++)
-//		{
-//			currMessage.a[i] = w_getter(i+5);
-//		}
-//		if(check_for_duplicates(currMessage, id, alreadyInID, baseHashTable))
-//		{
-//			return 2;
-//		}
-//		isCorrected = false;
-//		equToCorrect = firstUnsatisfiedEquation_getter();
-//#ifdef DEBUG
-//		tmp = *this;
-//		tmp.updatedToRound_setter() = 4;
-//		tmp.check_conformance_no_aux(12);
-//		if(tmp.firstUnsatisfiedEquation_getter() < 70) rs_pause();
-//		if(tmp.firstUnsatisfiedEquation_getter() != mFirstUnsatisfiedEquation){
-//			tmp.compare_duo_Sha1ParameterNotUpdated(*this, 5, 20, stderr);
-//			fprintf(stderr, "%d %d\n", tmp.firstUnsatisfiedEquation_getter(), firstUnsatisfiedEquation_getter());
-//			rs_pause();
-//		}
-//#endif
-//		m.copy(*this, 5, 22);
-//		switch(equToCorrect){
-//		case 83:
-//			if(solve83()){
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 84:
-//			if(solve84()){
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 85:
-//			if(solve85()){
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 86:
-//			if(solve86()){
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 87:
-//			if(solve87()){
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 88:
-//			if(solve88()){
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 89:
-//			if(solve89()) {
-//				isCorrected = true;
-//				break;
-//			}
-//			break;
-//		case 90:
-//			if(solve90()) {isCorrected = true; break;}
-//			break;
-//		}
-//		if((!isCorrected))// && (equToCorrect < 89))
-//		{
-//			for(int correctionIndex = gNumberOfCorrections[equToCorrect] - 1; correctionIndex > - 1; correctionIndex--)
-//			{
-//				if(apply_single_correction_and_check_neutral(modifiedMessage, gEquationCorrections[equToCorrect][correctionIndex],	EQUATION_TO_ROUND(equToCorrect)) > equToCorrect)
-//				{
-//					// if((equToCorrect==89) && (correctionIndex==9))
-//					// {
-//					// 	compare_duo(modifiedMessage,7,23,stderr);
-//					// 	rs_pause();
-//					// }
-//					isCorrected = true;
-//					*this = modifiedMessage;
-//					id[4] = firstUnsatisfiedEquation_getter();
-//#if MEASURE_CORRECTIONS_PROBABILITY
-//					gEquationCorrections[equToCorrect][correctionIndex].success++;
-//#endif
-//					break;
-//				}
-//				else
-//				{
-//					//					if((equToCorrect==86) && (correctionIndex==44))
-//					//					{
-//					//						compare_duo(modifiedMessage,8,22,stderr);rs_pause();
-//					//					}
-//#if MEASURE_CORRECTIONS_PROBABILITY
-//					if(modifiedMessage.firstUnsatisfiedEquation_getter()==equToCorrect)
-//					{
-//						gEquationCorrections[equToCorrect][correctionIndex].neutral++;
-//					}
-//					gEquationCorrections[equToCorrect][correctionIndex].fail++;
-//#endif
-//				}
-//			}
-//		}
-//
-//		if(!isCorrected)
-//			break;
-//	}
-//	return isCorrected;
-//}
-//#else
+#undef TEST_DUPLICATES
+#ifdef TEST_DUPLICATES
+int SHA1::correct_message_up_to_equation(int equ, mHashTable& baseHashTable, messageID& alreadyInID)
+{
+	//	static i64 t0;
+	//	static i64 t1;
+
+	//	std::chrono::time_point<std::chrono::system_clock> start, end;
+	//	extern std::chrono::duration<double> elapsedSeconds;
+	//	extern std::chrono::duration<double> elapsedSecondsTotal;
+	int equToCorrect = firstUnsatisfiedEquation_getter();
+	if(equToCorrect >= equ)
+		return 1;
+	Key currMessage;//the message we want to insert
+	bool isCorrected = true;
+	SHA1 modifiedMessage;
+	id[4] = equToCorrect;
+#ifdef DEBUG
+	SHA1 tmp = *this;
+	tmp = *this;
+	tmp.updatedToRound_setter() = 4;
+	tmp.check_conformance_no_aux(12);
+	if(tmp.firstUnsatisfiedEquation_getter() < 70){
+		rs_pause();
+	}
+#endif
+	while(firstUnsatisfiedEquation_getter() < equ)
+	{
+		for(int i = 0; i < 11; i++)
+		{
+			currMessage.a[i] = w_getter(i+5);
+		}
+		if(check_for_duplicates(currMessage, id, alreadyInID, baseHashTable))
+		{
+			return 2;
+		}
+		isCorrected = false;
+		equToCorrect = firstUnsatisfiedEquation_getter();
+#ifdef DEBUG
+		tmp = *this;
+		tmp.updatedToRound_setter() = 4;
+		tmp.check_conformance_no_aux(12);
+		if(tmp.firstUnsatisfiedEquation_getter() < 70) rs_pause();
+		if(tmp.firstUnsatisfiedEquation_getter() != mFirstUnsatisfiedEquation){
+			tmp.compare_duo_Sha1ParameterNotUpdated(*this, 5, 20, stderr);
+			fprintf(stderr, "%d %d\n", tmp.firstUnsatisfiedEquation_getter(), firstUnsatisfiedEquation_getter());
+			rs_pause();
+		}
+#endif
+		m.copy(*this, 5, 22);
+		switch(equToCorrect){
+		case 83:
+			if(solve83()){
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 84:
+			if(solve84()){
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 85:
+			if(solve85()){
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 86:
+			if(solve86()){
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 87:
+			if(solve87()){
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 88:
+			if(solve88()){
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 89:
+			if(solve89()) {
+				isCorrected = true;
+				break;
+			}
+			break;
+		case 90:
+			if(solve90()) {isCorrected = true; break;}
+			break;
+		}
+		if((!isCorrected))// && (equToCorrect < 89))
+		{
+			for(int correctionIndex = gNumberOfCorrections[equToCorrect] - 1; correctionIndex > - 1; correctionIndex--)
+			{
+				if(apply_single_correction_and_check_neutral(modifiedMessage, gEquationCorrections[equToCorrect][correctionIndex],	EQUATION_TO_ROUND(equToCorrect)) > equToCorrect)
+				{
+					// if((equToCorrect==89) && (correctionIndex==9))
+					// {
+					// 	compare_duo(modifiedMessage,7,23,stderr);
+					// 	rs_pause();
+					// }
+					isCorrected = true;
+					*this = modifiedMessage;
+					id[4] = firstUnsatisfiedEquation_getter();
+#if MEASURE_CORRECTIONS_PROBABILITY
+					gEquationCorrections[equToCorrect][correctionIndex].success++;
+#endif
+					break;
+				}
+				else
+				{
+					//					if((equToCorrect==86) && (correctionIndex==44))
+					//					{
+					//						compare_duo(modifiedMessage,8,22,stderr);rs_pause();
+					//					}
+#if MEASURE_CORRECTIONS_PROBABILITY
+					if(modifiedMessage.firstUnsatisfiedEquation_getter()==equToCorrect)
+					{
+						gEquationCorrections[equToCorrect][correctionIndex].neutral++;
+					}
+					gEquationCorrections[equToCorrect][correctionIndex].fail++;
+#endif
+				}
+			}
+		}
+
+		if(!isCorrected)
+			break;
+	}
+	return isCorrected;
+}
+#else
 int SHA1::correct_message_up_to_equation1(int equ)//, mHashTable& baseHashTable, messageID& alreadyInID)
 {
 	int equToCorrect = firstUnsatisfiedEquation_getter();
@@ -648,6 +667,7 @@ int SHA1::correct_message_up_to_equation1(int equ)//, mHashTable& baseHashTable,
 			if(solve88()){isCorrected = true;break;}
 			break;
 		case 89:
+//			if(solve89_v1(*this)){isCorrected = true;break;}
 			if(solve89()){isCorrected = true;break;}
 			break;
 		default:
@@ -685,4 +705,4 @@ int SHA1::correct_message_up_to_equation1(int equ)//, mHashTable& baseHashTable,
 	}
 	return isCorrected;
 }
-//#endif
+#endif

@@ -1,57 +1,160 @@
 #include "sha1.h"
 #include "duplicates.h"
 #include "sha_utils.h"
-#include "rounds_90_105.h"
-#include <sstream>
-#include <unistd.h>
-
+#include "mod_spec.h"
+#include <math.h>
 #define TEST_DUPLICATES
 #undef TEST_DUPLICATES
-#define RAND_MAX 2^^32;
-extern const int NUM_OF_NEUTRALS;
-extern ModStat neutralBitsStat[];
+#define NUM_OF_EQU 42
+
+int numberOfNB;
+int conformanceToWrite;
+char pathToMessages[] = "../sha_common_files/messages/";
+int conformanceCounter[143];
+
+ModSpec *NB;
+ModSpec *globalModifications;
+int numOfCorr[NUM_OF_EQU];
+
+ModStat *correctionsIndices[NUM_OF_EQU];
+int numberOfCorrections[NUM_OF_EQU];
+int* pNumberOfCorrections;
 
 int equation84Condition;
 linear_equation linearEquations[NUM_OF_LINEAR_EQUATIONS];
 
 std::chrono::duration<double> elapsedSeconds;
 std::chrono::duration<double> elapsedSecondsTotal;
-std::chrono::seconds secs(30);
+
 int *gNumberOfCorrections;
 correctionSet **gEquationCorrections;
-//setlogmask (LOG_UPTO (LOG_NOTICE));
 
 // int *gNuMOfCorr;
 // correctionSet **gEquCorr;
 
+int compareNB(const void *nb1, const void *nb2){
+	double p1 =	(double)((*(ModSpec*)nb1).stat.success)/(
+			((*(ModSpec*)nb1).stat.success) +
+			((*(ModSpec*)nb1).stat.neutral) +
+			((*(ModSpec*)nb1).stat.fail) +
+			((*(ModSpec*)nb1).stat.failedInFirst15Rounds));
+	double p2 =	(double)((*(ModSpec*)nb2).stat.success)/(
+			((*(ModSpec*)nb2).stat.success) +
+			((*(ModSpec*)nb2).stat.neutral) +
+			((*(ModSpec*)nb2).stat.fail) +
+			((*(ModSpec*)nb2).stat.failedInFirst15Rounds));
+
+	if(p1 > p2) return -1;
+	if(p1 == p2) return 0;
+	if(p1 < p2) return 1;
+	return 0;
+}
+
+int compareStatistics(const void *s1, const void *s2){
+	double p1 =	(double)((*(ModStat*)s1).success)/(
+			((*(ModStat*)s1).success) +
+			((*(ModStat*)s1).neutral) +
+			((*(ModStat*)s1).fail) +
+			((*(ModStat*)s1).failedInFirst15Rounds));
+	double p2 =	(double)((*(ModStat*)s2).success)/(
+			((*(ModStat*)s2).success) +
+			((*(ModStat*)s2).neutral) +
+			((*(ModStat*)s2).fail) +
+			((*(ModStat*)s2).failedInFirst15Rounds));
+
+	if(p1 > p2) return -1;
+	if(p1 == p2) return 0;
+	if(p1 < p2) return 1;
+	return 0;
+}
+
 const int equationsToRead[] = {49, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67,	68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,	86, 87, 88, 89 };
+const int indicesOfCorrectionsToRead[] = {89, 90};
+const int numOfCorrectionsToRead =2;
+
+void readIndices(ModStat** correctionsIndices, int* pNumberOfCorrections, const int indicesOfCorrectionsToRead[]){
+	for(int idx = 0; idx < numOfCorrectionsToRead; ++idx){
+		char fileName[100];
+		FILE* fileToRead;
+		int numOfIndices = 0;
+		int corrToRead = indicesOfCorrectionsToRead[idx];
+		sprintf(fileName, "../sha_common_files/global_corrections/%d", corrToRead);
+		assert((fileToRead = fopen(fileName, "r")) != NULL);
+		int scanNum;
+		while((EOF != fscanf(fileToRead, "%d\n", &scanNum))){numOfIndices++;}
+		rewind(fileToRead);
+		correctionsIndices[corrToRead-49] = (ModStat*)calloc(numOfIndices, sizeof(ModStat));
+		pNumberOfCorrections[corrToRead] = numOfIndices;
+		numOfIndices = 0;
+		while((EOF != fscanf(fileToRead, "%d\n", &(correctionsIndices[corrToRead-49][numOfIndices].index)))){
+			correctionsIndices[corrToRead-49][numOfIndices++].init();
+		};
+//		fprintf(stderr, "pNumberOfCorrections[%d] = %d\n", corrToRead, pNumberOfCorrections[corrToRead]);rs_pause();
+	}
+}
+
+void printStatistics(ModStat** correctionsIndices, int* pNumberOfCorrections, const int indicesOfCorrectionsToRead[]){
+	char fileName[100];
+	FILE* fileToWrite;
+	sprintf(fileName, "../sha_common_files/global_corrections/statistics");
+	assert((fileToWrite = fopen(fileName, "w")) != NULL);
+	for(int idx = 0; idx < numOfCorrectionsToRead; ++idx){
+		int corrToWrite = indicesOfCorrectionsToRead[idx];
+		fprintf(fileToWrite, "%d\n", corrToWrite);
+		for(int i = 0; i < pNumberOfCorrections[corrToWrite]; ++i){
+			correctionsIndices[corrToWrite-49][i].print(fileToWrite);
+		}
+		fprintf(fileToWrite, "\n");
+	}
+	fclose(fileToWrite);
+}
+
+
 int main(int argc, char* argv[]) {
-	int pid = getpid();
-	srand(time(NULL)+pid*1000);
-	char host[50];
-	gethostname(host, 50);
-	u32 M5to15[11];
-	FILE *results_fp;
-	time_t t = time(0);   // get time now
-	struct tm tm = *localtime( & t );
-	char datum[128];
-	sprintf(datum, "../sha_common_files/files/results-pid:%d-%d-%d-%dT%d:%d:%d", pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-	printf("%s\n", datum);
-	const char* results_file_name = datum;//"../sha_common_files/files/results-" + tts;
-	cout << results_file_name << endl;
-	int threshold1_print_level = 120;
-	//int numOfMessages = 100000;
-	int lastEquToCorrect = 142;
+	conformanceToWrite = 130;
+
+	//read nb 90_105
+	FILE *fp_NB;
+	assert((fp_NB = fopen("../sha_common_files/global_corrections/nb_sorted", "r")) != NULL);
+	numberOfNB = 0;
+	ModSpec tmp;
+	while(tmp.read_spec(fp_NB))numberOfNB++;
+	rewind(fp_NB);
+	NB = (ModSpec*)calloc(numberOfNB, sizeof(ModSpec));
+	for(int i = 0; i < numberOfNB; i++){
+		NB[i].read_spec(fp_NB);
+		NB[i].modIndex = i;
+	}
+	fclose(fp_NB);
+	//read modifications up to 89
+	assert((fp_NB = fopen("../sha_common_files/global_corrections/gm_rafi", "r")) != NULL);
+	int numberOfModifications = 0;
+	while(tmp.read_spec(fp_NB))numberOfModifications++;
+	rewind(fp_NB);
+	globalModifications = (ModSpec*)calloc(numberOfModifications, sizeof(ModSpec));
+	for(int i = 0; i < numberOfModifications; i++){
+		globalModifications[i].read_spec(fp_NB);
+		globalModifications[i].modIndex = i;
+	}
+	fclose(fp_NB);
+
+	//read indices
+	for(int i = 0; i < NUM_OF_EQU; i++){
+		correctionsIndices[i] = NULL;
+		pNumberOfCorrections = numberOfCorrections - 49;
+	}
+	readIndices(correctionsIndices, pNumberOfCorrections, indicesOfCorrectionsToRead);
+
+	for(int i = 0; i < 143; i++)
+		conformanceCounter[i] = 0;
+	int numOfMessages = 100000;
+	int lastEquToCorrect = 89;
 	if (argc >= 2) {
-		  lastEquToCorrect= atoi(argv[1]);
+		numOfMessages = atoi(argv[1]);
 	}
 	if (argc >= 3) {
-		threshold1_print_level = atoi(argv[2]);
+		lastEquToCorrect = atoi(argv[2]);
 	}
-	int levHistSize = 142 - threshold1_print_level;
-	if(levHistSize<0){return 1;}
-	u32 *accuArr = new u32[levHistSize];
-	for(int t=0;t<levHistSize;t++){accuArr[t] = 0;}
 //	 gNuMOfCorr = (int *) calloc(1, sizeof(int));
 //	 gEquCorr = (correctionSet **) calloc(1, sizeof(correctionSet*));
 //	 read_correction_file(gEquCorr, gNuMOfCorr, "../sha_common_files/test");
@@ -68,23 +171,25 @@ int main(int argc, char* argv[]) {
 	int numberOfConformingMsg = 0;
 	int numberOfProcessedMessages = 0;
 	int duplicatesCounter = 0;
-	std::chrono::time_point<std::chrono::system_clock> start, end;
+	std::chrono::time_point<std::chrono::system_clock> start, end, tmpTime;
 	start = std::chrono::system_clock::now();
 	int randomMsgCounter = 0;
 	int newMessageCounter = 0;
 
 	FILE *fp_random;
-	assert((fp_random = fopen("../sha_common_files/fixRandom1", "r")) != NULL);
-	while (continueSearch) {
+//	assert((fp_random = fopen("../sha_common_files/fixRandom1", "r")) != NULL);
+	assert((fp_random = fopen("/dev/urandom", "r")) != NULL);
+
+	while (continueSearch && (numberOfConformingMsg < numOfMessages)) {
+	//while (continueSearch) {
 		while (newStack.empty()) {
 			SHA1 newMessage;
-			initialize_random_message(newMessage,M5to15) ;
-		//	if (!initialize_random_message(newMessage, fp_random)) {
-		//		continueSearch = false;
-		//		break;
-		//	} else {
+			if (!initialize_random_message(newMessage, fp_random)) {
+				continueSearch = false;
+				break;
+			} else {
 				randomMsgCounter++;
-		//	}
+			}
 			//generate a message that conforms to the first 16 rounds and then continue and fix the message up to equation 79
 			if (0 < (returnedValue = test_and_fix_till_round_15(newMessage, 5, linearEquations))) {
 //				if(!(newMessage.a_getter(11) & B5))continue;
@@ -102,7 +207,6 @@ int main(int argc, char* argv[]) {
 //		messageID alreadyInID; //if the message we want to insert is already in, alreadyInID will be updated with the id of the colliding message
 //#endif
 		SHA1 s;
-		SHA1 tmp;
 		s.set_messageMask();
 		while (!newStack.empty()) {
 			numberOfProcessedMessages++;
@@ -146,10 +250,10 @@ int main(int argc, char* argv[]) {
 
 			s.check_conformance(70);
 
-		//	if (s.firstUnsatisfiedEquation_getter() > lastEquToCorrect){
-		//		numberOfConformingMsg++;
-		//		continue;
-		//	}
+			if (s.firstUnsatisfiedEquation_getter() > lastEquToCorrect){
+				numberOfConformingMsg++;
+				continue;
+			}
 
 //#ifdef TEST_DUPLICATES
 //			int returnedValue = s.correct_message_up_to_equation(lastEquToCorrect+1, baseHashTable, alreadyInID);
@@ -161,70 +265,79 @@ int main(int argc, char* argv[]) {
 //				continue;
 //			}
 //#else
-			int returnedValue = s.correct_message_up_to_equation1(90);//, baseHashTable, alreadyInID);
+			for(int corrIdx = 0; corrIdx < numberOfNB; ++corrIdx){
+				NB[corrIdx].used = false;;
+			}
+			int returnedValue = s.correct_message_up_to_equation1(lastEquToCorrect+1);//, baseHashTable, alreadyInID);
 			if (returnedValue == 1) {
 //				if(s.firstUnsatisfiedEquation_getter()>97){
 //					fprintf(stderr, "%d %d %x\n", s.mFirstUnsatisfiedEquation, s.mWindowWeight, s.mWindowWeightMask);
 //					rs_pause();
 //				}
 				solve_90_105(s);
-				if(s.mFirstUnsatisfiedEquation>=lastEquToCorrect)
-				{
-					continueSearch = false;
-					for(int k=0;k<11;k++){fprintf(stderr, "%x ", M5to15[k]);}
-					fprintf(stderr,"\n");
-					end = std::chrono::system_clock::now();
-					std::chrono::duration<double> elapsed_seconds = end - start;
-					std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-					return 0;
-				}
-				if(s.mFirstUnsatisfiedEquation >= threshold1_print_level)
-				{
-					accuArr[s.mFirstUnsatisfiedEquation-threshold1_print_level]++;
-				}
-				if((std::chrono::system_clock::now()- start) > secs)
-				{
-
-					results_fp = fopen(results_file_name, "a+");
-					time_t t = time(0);   // get time now
-					struct tm tm = *localtime( & t );
-					fprintf(results_fp, "host: %s lastEqToCorrect: %d Thresh: %d pid:%d %d-%d-%dT%d:%d:%d   ", host, lastEquToCorrect, threshold1_print_level, pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-					for(int u=0;u<levHistSize;u++){
-						fprintf(results_fp, "%u ", accuArr[u]);
-					}
-					fprintf(results_fp, "\n");
-					
-					//fprintf(stderr, "%u ", accuArr[u]);
-
-					fclose(results_fp);
-					start = std::chrono::system_clock::now();
-				}
-				continue;
 //				if(s.firstUnsatisfiedEquation_getter()>105){fprintf(stderr, "%d\n",s.firstUnsatisfiedEquation_getter());rs_pause();}
-			//	numberOfConformingMsg++;
-			//	continue;
+//				if(s.firstUnsatisfiedEquation_getter()>105)
+//					conformanceCounter[s.firstUnsatisfiedEquation_getter()]++;
+				if((numberOfConformingMsg & 0xfffff) == 0xfffff){
+					tmpTime = std::chrono::system_clock::now();
+					std::chrono::duration<double> elapsed_seconds = tmpTime - start;
+					std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+					int counterNormalized = 0;
+					for(int i = 106; i < 143; i++){
+						if(conformanceCounter[i]){
+							counterNormalized += conformanceCounter[i] * pow(2, i-106);
+							fprintf(stderr, "%3d:  %6d\n", i, conformanceCounter[i]);
+						}
+					}
+					fprintf(stderr,"\n");
+				}
+				numberOfConformingMsg++;
+				continue;
 			}
 //#endif
 		}
 	}
+	end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+	fprintf(stderr, "%d %d\n", numberOfConformingMsg, duplicatesCounter);
 
-//	fprintf(stderr, "%d %d\n", numberOfConformingMsg, duplicatesCounter);
+//	for(int i = 0; i < NUM_OF_NEUTRALS; i++){
+//		fprintf(stderr, "%2d: %8d %8d %8d %8d %8d\n",
+//				i, NB[i].stat.total, NB[i].stat.failedInFirst15Rounds, NB[i].stat.fail,
+//				NB[i].stat.neutral, NB[i].stat.success);
+//	}
 
-	for(int i = 0; i < NUM_OF_NEUTRALS; i++){
-		fprintf(stderr, "%6d %6d %6d %6d %6d\n",
-				neutralBitsStat[i].total, neutralBitsStat[i].failedInFirst15Rounds, neutralBitsStat[i].fail,
-				neutralBitsStat[i].neutral, neutralBitsStat[i].success);
-	}
+	qsort(NB, numberOfNB, sizeof(ModSpec), compareNB);
 
+//	FILE *fp_soretdNB;
+//	assert((fp_soretdNB = fopen("../sha_common_files/corrections/neutarl_bits_sorted", "w")) != NULL);
+//	fflush(fp_soretdNB);
+//	fclose(fp_soretdNB);
 #if STATISTICS & MEASURE_CORRECTIONS_PROBABILITY
 	char statcorrfilename[100] = { 0 };
-//	char host[50];
-//	gethostname(host, 50);
-	//char * host = "localhost";
+	char host[50];
+	pid_t pid = 0;
+	gethostname(host, 50);
+	pid = getpid();
 	sprintf(statcorrfilename,"../sha_common_files/corr_prob/actual_correction:%s:%d", host,(unsigned) pid);
 	compute_and_print_corrections_statistics(statcorrfilename, gEquationCorrections, gNumberOfCorrections, false);
-//	compute_and_print_corrections_statistics_test(gEquCorr[0], gNuMOfCorr[0],true);
 
+	for(int idx = 0; idx < numOfCorrectionsToRead; ++idx){
+		int corrToSort = indicesOfCorrectionsToRead[idx];
+		qsort(correctionsIndices[corrToSort-49], pNumberOfCorrections[corrToSort], sizeof(ModStat), compareStatistics);
+	}
+	printStatistics(correctionsIndices, pNumberOfCorrections, indicesOfCorrectionsToRead);
+
+	//	compute_and_print_corrections_statistics_test(gEquCorr[0], gNuMOfCorr[0],true);
+	int counterNormalized = 0;
+	for(int i = 106; i < 143; i++){
+		if(conformanceCounter[i]){
+			counterNormalized += conformanceCounter[i] * pow(2, i-106);
+			fprintf(stderr, "%3d:  %6d\n", i, conformanceCounter[i]);
+		}
+	}
+	fprintf(stderr, "counterNormalized = %d\n", counterNormalized);
 #endif
 	//release mem
 	for (int i = 0; i <= LAST_EQUATION_TO_CORRECT; i++) {

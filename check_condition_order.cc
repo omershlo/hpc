@@ -40,15 +40,7 @@ int SHA1::compute_firstUnsatisfied()
 	}
 	return 142;
 }
-int SHA1::compute_firstUnsatisfied(int start)
-{
-	for(int it = start; it <=108 ; it++)
-	{
-		if(!check_single_equation_by_order(it))
-			return it;
-	}
-	return 108;
-}
+
 //void SHA1::test_neutrality(LCS l, int firstEqu, int lastEqu)
 //{
 //	static int counter[20];
@@ -595,132 +587,132 @@ bool SHA1::check_single_equation_by_order(int equationOrder)
 		b[1] = (a_getter(38) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  116:
+	case  116://420
 		b[0] = (a_getter(41) & B29)?1:0;
 		b[1] = (a_getter(40) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  117:
+	case  117://421
 		b[0] = (a_getter(40) & B1)?1:0;
 		b[1] = (a_getter(39) & B1)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  118:
+	case  118://430
 		b[0] = (a_getter(43) & B31)?1:0;
 		b[1] = (w_getter(43) & B4)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  119:
+	case  119://431
 		b[0] = (a_getter(42) & B29)?1:0;
 		b[1] = (a_getter(40) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  120:
+	case  120://440
 		b[0] = (a_getter(43) & B29)?1:0;
 		b[1] = (a_getter(42) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  121:
+	case  121://441
 		b[0] = (a_getter(42) & B1)?1:0;
 		b[1] = (a_getter(41) & B1)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  122:
+	case  122://442
 		b[0] = (a_getter(45) & B30)?1:0;
 		b[1] = (w_getter(44) & B30)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  123:
+	case  123://450
 		b[0] = (a_getter(44) & B29)?1:0;
 		b[1] = (a_getter(42) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  124:
+	case  124://460
 		b[0] = (a_getter(45) & B29)?1:0;
 		b[1] = (a_getter(44) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  125:
+	case  125://461
 		b[0] = (a_getter(44) & B0)?1:0;
 		b[1] = (a_getter(43) & B0)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  126:
+	case  126://470
 		b[0] = (a_getter(46) & B28)?1:0;
 		b[1] = (a_getter(44) & B30)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  127:
+	case  127://480
 		b[0] = (a_getter(48) & B31)?1:0;
 		b[1] = (w_getter(48) & B4)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  128:
+	case  128://481
 		b[0] = (a_getter(47) & B28)?1:0;
 		b[1] = (a_getter(46) & B30)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  129:
+	case  129://490
 		b[0] = (a_getter(47) & B1)?1:0;
 		b[1] = (a_getter(46) & B1)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  130:
+	case  130://500
 		b[0] = (a_getter(49) & B29)?1:0;
 		b[1] = (a_getter(47) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  131:
+	case  131://510
 		b[0] = (a_getter(50) & B29)?1:0;
 		b[1] = (a_getter(49) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  132:
+	case  132://530
 		b[0] = (a_getter(53) & B31)?1:0;
 		b[1] = (w_getter(53) & B4)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  133:
+	case  133://540
 		b[0] = (a_getter(52) & B1)?1:0;
 		b[1] = (a_getter(51) & B1)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  134:
+	case  134://550
 		b[0] = (a_getter(54) & B29)?1:0;
 		b[1] = (a_getter(52) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  135:
+	case  135://560
 		b[0] = (a_getter(55) & B29)?1:0;
 		b[1] = (a_getter(54) & B31)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  136:
+	case  136://590
 		b[0] = (a_getter(59) & B31)?1:0;
 		b[1] = (w_getter(59) & B4)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  137:
+	case  137://610
 		b[0] = (a_getter(61) & B31)?1:0;
 		b[1] = (w_getter(61) & B4)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  138:
+	case  138://611
 		b[0] = (w_getter(61) & B29)?1:0;
 		b[1] = (f_getter(61) & B29)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  139:
+	case  139://620
 		b[0] = (w_getter(62) & B29)?1:0;
 		b[1] = (f_getter(62) & B29)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);
 		break;
-	case  140:
+	case  140://630
 		b[0] = (w_getter(59) & B4)?1:0;
 		b[1] = (f_getter(63) & B29)?1:0;
 		pass = ((b[0] ^ b[1] )== 0);
 		break;
-	case 141:
+	case 141://640
 		b[0] = (w_getter(64) & B29)?1:0;
 		b[1] = (f_getter(64) & B29)?1:0;
 		pass = ((b[0] ^ b[1] )== 1);

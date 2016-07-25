@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <stack>
 
-
 #define ANSI_UNDERLINED_PRE  "\033[4m"
 #define ANSI_UNDERLINED_POST "\033[0m"
 

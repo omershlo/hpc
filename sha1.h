@@ -93,7 +93,7 @@ public:
 	int &firstUnsatisfiedEquation_setter() 	 { return mFirstUnsatisfiedEquation;}
 	int firstUnsatisfiedEquation_getter() const { return mFirstUnsatisfiedEquation;}
 	int compute_firstUnsatisfied();
-	int compute_firstUnsatisfied(int start);
+
 	int& updatedToRound_setter() 					 {return mUpdatedToRound;}
 	int updatedToRound_getter() const 				 {return mUpdatedToRound; }
 
@@ -235,7 +235,8 @@ public:
 
 	int test_and_correct_linear_equation(linear_equation equ);
 	int test_linear_equation(linear_equation equ);
-
+	void print_message(FILE *fp);
+	void print_message(char* path, int firstUnSatisfied);
 	void print_sha(FILE* fp)
 	{
 		for(int i = 0; i < 81; i++)
@@ -307,7 +308,6 @@ public:
 void print_sha(SHA1 &, FILE *);
 
 bool initialize_random_message(SHA1&, FILE*);
-void initialize_random_message(SHA1& deltaLinearMessage,u32 M5to15[11]);
 
 int apply_linear_modification(SHA1&, const char, const char);
 

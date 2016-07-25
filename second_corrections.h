@@ -10,15 +10,15 @@
 
 #include "solve.h"
 
-inline bool updateAndTestConformance(SHA1& ref, int equToSolve, int& conformanceOfModifiedMsg);
-inline bool c84_1(SHA1& ref, int equToCorrect, int restoreFrom);
-inline bool c85_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
-inline bool c86_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
-inline bool c87_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
-inline bool c88_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
-inline bool c89_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
-inline bool second_correction(SHA1& ref, ReducedSha& intermediate, int conformanceOfModifiedMsg, int equToCorrect, int restoreFromRound);
-inline bool second_correction_nb(SHA1& ref, ReducedSha& intermediate, int conformanceOfModifiedMsg, int firstUnSatisfied, int weight, int restoreFromRound);
+//inline bool updateAndTestConformance(SHA1& ref, int equToSolve, int& conformanceOfModifiedMsg);
+//inline bool c84_1(SHA1& ref, int equToCorrect, int restoreFrom);
+//inline bool c85_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
+//inline bool c86_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
+//inline bool c87_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
+//inline bool c88_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
+//inline bool c89_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom);
+//inline bool second_correction(SHA1& ref, ReducedSha& intermediate, int conformanceOfModifiedMsg, int equToCorrect, int restoreFromRound);
+//inline bool second_correction_nb(SHA1& ref, ReducedSha& intermediate, int conformanceOfModifiedMsg, int firstUnSatisfied, int weight, int restoreFromRound);
 
 
 inline bool c84_1(SHA1& ref, int equToCorrect, int restoreFrom){
@@ -177,15 +177,14 @@ c88_7:
 
 inline bool c89_1(SHA1& ref, ReducedSha& intermediate, int equToCorrect, int restoreFrom){
 	int tmpConformance;
-	int roundToStart = 16;
-	if(!mod_6(ref, B7, intermediate, roundToStart))//17%
+	if(!mod_6(ref, B7, false, intermediate))//17%
 	{
 		goto c89_00;
 	}
 	if(updateAndTestConformance(ref, equToCorrect, tmpConformance)) return true;;
 	intermediate.restore(ref, 6, 11);
 c89_00:
-	if(!mod_6(ref, B8, intermediate, roundToStart))//5%
+	if(!mod_6(ref, B8, false, intermediate))//5%
 	{
 		goto c89_01;
 	}
@@ -220,7 +219,7 @@ c89_5:
 	if(updateAndTestConformance(ref, equToCorrect, tmpConformance)) return true;;
 	intermediate.restore(ref, 7, 15);
 c89_6:
-	if(!mod_6(ref, B8|B7, intermediate, roundToStart))//2.1
+	if(!mod_6(ref, B8|B7, false, intermediate))//2.1
 	{
 		goto c89_9;
 	}

@@ -9,6 +9,16 @@
 #define SOLVE_H_
 
 #include "modifications.h"
+struct ModSpec;
+extern ModSpec *globalModifications;
+extern int *pNumOfCorr;
+extern int (*pCorrIndices)[100];
+
+struct ModStat;
+extern ModStat *correctionsIndices[];
+extern int numberOfCorrections[];
+extern int* pNumberOfCorrections;
+
 
 bool check_conformance_90_105(int conformanceOfModifiedMsg, int firstUnSatisfied, int weightOfModifiedMsg, int weight, int modIdx);
 int updateAndTest(SHA1& ref, int roundToStart);
@@ -16,7 +26,10 @@ int updateAndTest(SHA1& ref);
 inline bool updateAndTestConformance(SHA1& ref, int equToSolve, int& conformanceOfModifiedMsg);
 inline bool updateAndTestConformance(SHA1& ref, int equToSolve, int& conformanceOfModifiedMsg){
 	conformanceOfModifiedMsg = updateAndTest(ref);
-	if(conformanceOfModifiedMsg > equToSolve) {ref.mFirstUnsatisfiedEquation = conformanceOfModifiedMsg; return true;}
+	if(conformanceOfModifiedMsg > equToSolve) {
+		ref.mFirstUnsatisfiedEquation = conformanceOfModifiedMsg;
+		return true;
+	}
 	return false;
 }
 

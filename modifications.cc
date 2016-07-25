@@ -385,40 +385,40 @@ bool mod_6(SHA1& ref, u32 xorDiff, bool wOrState, ReducedSha& baseMsg)
 	return true;
 }
 
-bool mod_6(SHA1& ref, u32 xorDiff, ReducedSha& baseMsg, int& roundToStart)
-{
-	u32 stateSubDiff = (ref.mA[7] ^ xorDiff) - ref.mA[7];
-	//6
-	ref.mW[6] += stateSubDiff;
-	ref.mA[7] += stateSubDiff;
-	ref.mA30[7] = ROTATE(ref.mA[7], 30);
-	//7
-	ref.mW[7] -= (stateSubDiff<<5);
-	//8
-	roundToStart = 19;
-	if((xorDiff<<2) & ref.mA[6]){
-		roundToStart = 16;
-		ref.mF[8] = F_00_19(ref.mA[7], ref.mA30[6], ref.mA30[5]);
-		ref.mW[8] -= (ref.mF[8] - baseMsg.f[8]);
-	}
-	//9
-	if(((xorDiff>>2) & ref.mA[8])){
-		if(roundToStart > 17) roundToStart = 17;
-		ref.mF[9] = F_00_19(ref.mA[8], ref.mA30[7], ref.mA30[6]);
-		ref.mW[9] -= (ref.mF[9] - baseMsg.f[9]);
-	}
-	//10
-	if(((xorDiff>>2) & ref.mA[9]) ^ (xorDiff>>2)){
-		if(roundToStart > 18) roundToStart = 18;
-		ref.mF[10] = F_00_19(ref.mA[9], ref.mA30[8], ref.mA30[7]);
-		ref.mW[10] -= (ref.mF[10] - baseMsg.f[10]);
-		if((ref.mW[10] ^ baseMsg.w[10]) & mM[R10]){baseMsg.restore(ref, 6, 10);return false;}
-	}
-	//11
-	ref.mW[11] -= SHIFT_RIGHT2_SIGNED(stateSubDiff);
-	if((ref.mW[11] ^ baseMsg.w[11]) & mM[R11]){baseMsg.restore(ref, 6, 11);return false;}
-	return true;
-}
+//bool mod_6(SHA1& ref, u32 xorDiff, ReducedSha& baseMsg, int& roundToStart)
+//{
+//	u32 stateSubDiff = (ref.mA[7] ^ xorDiff) - ref.mA[7];
+//	//6
+//	ref.mW[6] += stateSubDiff;
+//	ref.mA[7] += stateSubDiff;
+//	ref.mA30[7] = ROTATE(ref.mA[7], 30);
+//	//7
+//	ref.mW[7] -= (stateSubDiff<<5);
+//	//8
+//	roundToStart = 19;
+//	if((xorDiff<<2) & ref.mA[6]){
+//		roundToStart = 16;
+//		ref.mF[8] = F_00_19(ref.mA[7], ref.mA30[6], ref.mA30[5]);
+//		ref.mW[8] -= (ref.mF[8] - baseMsg.f[8]);
+//	}
+//	//9
+//	if(((xorDiff>>2) & ref.mA[8])){
+//		if(roundToStart > 17) roundToStart = 17;
+//		ref.mF[9] = F_00_19(ref.mA[8], ref.mA30[7], ref.mA30[6]);
+//		ref.mW[9] -= (ref.mF[9] - baseMsg.f[9]);
+//	}
+//	//10
+//	if(((xorDiff>>2) & ref.mA[9]) ^ (xorDiff>>2)){
+//		if(roundToStart > 18) roundToStart = 18;
+//		ref.mF[10] = F_00_19(ref.mA[9], ref.mA30[8], ref.mA30[7]);
+//		ref.mW[10] -= (ref.mF[10] - baseMsg.f[10]);
+//		if((ref.mW[10] ^ baseMsg.w[10]) & mM[R10]){baseMsg.restore(ref, 6, 10);return false;}
+//	}
+//	//11
+//	ref.mW[11] -= SHIFT_RIGHT2_SIGNED(stateSubDiff);
+//	if((ref.mW[11] ^ baseMsg.w[11]) & mM[R11]){baseMsg.restore(ref, 6, 11);return false;}
+//	return true;
+//}
 
 bool mod_6_8(SHA1& ref, u32 xorDiff6, u32 xorDiff8, bool wOrState8, ReducedSha& baseMsg)
 {
@@ -953,7 +953,7 @@ bool mod_9_op(SHA1& ref, u32 stateXorDiff, bool wOrState, ReducedSha& baseMsg)
 	return true;
 }
 
-bool mod_9_14(SHA1& ref, u32 stateXorDiff, ReducedSha& baseMsg)
+bool mod_9_14(SHA1& ref, u32 stateXorDiff, bool wOrState, ReducedSha& baseMsg)
 {
 	u32 stateSubDiff = (ref.mA[10] ^ stateXorDiff) - ref.mA[10];
 	//9

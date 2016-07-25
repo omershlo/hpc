@@ -49,7 +49,7 @@ if(second_correction(ref, intermediate, conformanceOfModifiedMsg, 88, 9))return 
 
 
 bool c_solve88_9(SHA1& ref, u32 xorDiff){
-	if(!mod_9(ref, xorDiff, m)){//14%
+	if(!mod_9(ref, xorDiff, false, m)){//14%
 		return false;
 	}
 	int conformanceOfModifiedMsg = 0;
@@ -237,7 +237,7 @@ bool c_solve88_10_no_further_corr(SHA1& ref, u32 xorDiff, bool wOrState){
 
 bool c_solve88_5_9_14(SHA1& ref, u32 xorDiff1, bool wOrState1, u32 xorDiff2){
 	if(!mod_5(ref, xorDiff1, wOrState1, m)) return false;
-	if(!mod_9_14(ref, xorDiff2, m)){m.restore(ref, 5, 14); return false;}
+	if(!mod_9_14(ref, xorDiff2, false, m)){m.restore(ref, 5, 14); return false;}
 	int conformanceOfModifiedMsg = 0;
 	if(updateAndTestConformance(ref, 88, conformanceOfModifiedMsg)) return true;;
 	ReducedSha intermediate;
@@ -248,7 +248,7 @@ bool c_solve88_5_9_14(SHA1& ref, u32 xorDiff1, bool wOrState1, u32 xorDiff2){
 }
 
 bool c_solve88_9_14(SHA1& ref, u32 xorDiff){
-	if(!mod_9_14(ref, xorDiff, m)) return false;
+	if(!mod_9_14(ref, xorDiff, false, m)) return false;
 	int conformanceOfModifiedMsg = 0;
 	if(updateAndTestConformance(ref, 88, conformanceOfModifiedMsg)) return true;;
 	ReducedSha intermediate;
@@ -388,6 +388,17 @@ bool SHA1::solve88(){
 	if(c_solve88_9_14(*this, B7, B6))return true;
 	if(c_solve88_7_15v1(*this, B7, false, B28, false, m))return true;
 	if(c_solve88_7_15v1(*this, B8, false, B29, false, m))return true;
+	if(c_solve88_5_13(*this, B7, false, B8, true))return true;//2.1
+
+	if(c_solve88_7_12_14(*this, B7, false, B7, true, B7|B6, false))return true;//1.8
+	if(c_solve88_5_10(*this, B10|B9, false))return true;//1.8
+	if(c_solve88_10(*this, B8|B7, false)) return true;//1.7
+	if(c_solve88_5_14(*this, B9, false, B6|B5, false))return true;//1.7
+	if(c_solve88_9_14(*this, B9|B8))return true;//1.6
+	if(c_solve88_5_13(*this, B7, false, B6|B5, true))return true;//1.6
+	if(c_solve88_5_10(*this, B9, false))return true;//1.5
+	if(c_solve88_5_14(*this, B10, false, B7, false))return true;//1.5
+	if(c_solve88_5_9_14(*this, B10|B9, false, B8|B7)) return true;//1.5
 
 #ifdef PROB
 	{fail++; fprintf(stderr,"%d %d %.2g\n",total, total-fail, (double)(total-fail)/total);}

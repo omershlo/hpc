@@ -6,25 +6,6 @@
 
 
 
-void initialize_random_message(SHA1& deltaLinearMessage,u32 M5to15[11])
-{
-	const u32 MESSAGE_MASK[16] = {	0xffffffff, 0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xfff8003f,0xfc000071,0x3c00001d,
-									0x3c000004,0x3c00001a,0x3c000010,0x3c00001c,0x7c000014,0x0c000000,0x5c000010,0x3400001c};
-	const u32 MESSAGE_VALUE[16] = {	0xf49867bb,0x9dfbd98f,0xcc597023,0x8215c718,0x60acb18a,0xb0000028,0x48000050,0x0c00001c,
-									0x1c000000,0x20000018,0x00000010,0x00000010,0x70000000,0x00000000,0x0c000000,0x1000000c};
-	//&deltaLinearMessage.w_setter(5) = {rand(),rand(),rand(),rand(),rand(),rand(),rand(),rand(),rand(),rand(),rand()};
-	//u32 M5to15[11];
-	for(int i = 5; i < 16; i++)
-	{
-		deltaLinearMessage.w_setter(i) = rand();
-		M5to15[i-5] = deltaLinearMessage.w_setter(i);
-		deltaLinearMessage.w_setter(i) = ((deltaLinearMessage.w_getter(i) & ~MESSAGE_MASK[i]) | MESSAGE_VALUE[i]);
-		
-	}
-	deltaLinearMessage.updatedToRound_setter() = 4;
-	deltaLinearMessage.firstUnsatisfiedEquation_setter() = 0;
-
-}
 
 bool initialize_random_message(SHA1& deltaLinearMessage, FILE* fp_random)
 {
@@ -327,19 +308,17 @@ int test_and_fix_till_round_15(SHA1 &deltaLinearMessage, int startRound, linear_
 	int round = startRound;
 	//TODO: initialize watchdogs when deriving messages by using linear solutions
 	int watchDog1531 = 0;
-	int watchDog1204 = 0;
 	while((round < 16)||(round>1000))
 	{
 		switch(round)
 		{
 		case 5: /* A[6] */
 			watchDog1531 = 0; //TODO why this is needed
-			watchDog1204 = 0;
 			//			deltaLinearMessage.windowWeight_setter() = 150;
 			/* a(7)[7] */
 			/* a(7)[8] */
-			//deltaLinearMessage.w_setter(5) |= (B11 | B10 | B9 | B6);
-			deltaLinearMessage.w_setter(5) |= ( B10 | B9 | B6);
+			deltaLinearMessage.w_setter(5) |= (B11 | B10 | B9 | B6);
+//			deltaLinearMessage.w_setter(5) |= ( B10 | B9 | B6);
 			deltaLinearMessage.w_setter(5) &= NB7;
 			deltaLinearMessage.w_setter(5) &= NB12;
 			deltaLinearMessage.w_setter(5) &= NB8;
@@ -735,6 +714,8 @@ int test_and_fix_till_round_15(SHA1 &deltaLinearMessage, int startRound, linear_
 		case 12:
 			round = 12;
 			deltaLinearMessage.w_setter(12) &= 0xffffa01f;
+			if(deltaLinearMessage.a_setter(12) & B31) deltaLinearMessage.w_setter(12) &= NB4;
+			else deltaLinearMessage.w_setter(12) |= B4;
 			deltaLinearMessage.w_setter(12) |=  B12;
 			deltaLinearMessage.a_setter(13) = deltaLinearMessage.k_getter(12) + deltaLinearMessage.w_getter(12);
 			//52: a[13][1] = a[12][1] ^ B1
@@ -1013,15 +994,15 @@ int test_and_fix_till_round_15(SHA1 &deltaLinearMessage, int startRound, linear_
 			round = 14;
 			if(deltaLinearMessage.a_getter(15) & B4)
 			{
-				if(!watchDog1204 && (!(deltaLinearMessage.a30_getter(13) & B4)) && ((deltaLinearMessage.a30_getter(12) ^ deltaLinearMessage.a30_getter(11)) & B6))
-				{
-					watchDog1204++;
-					deltaLinearMessage.w_setter(12) ^= B4;
-					//					deltaLinearMessage.updatedToRound_setter() = 11;
-					round = 12;
-					break;
-				}
-				watchDog1204 = 0;
+//				if(!watchDog1204 && (!(deltaLinearMessage.a30_getter(13) & B4)) && ((deltaLinearMessage.a30_getter(12) ^ deltaLinearMessage.a30_getter(11)) & B6))
+//				{
+//					watchDog1204++;
+//					deltaLinearMessage.w_setter(12) ^= B4;
+//					//					deltaLinearMessage.updatedToRound_setter() = 11;
+//					round = 12;
+//					break;
+//				}
+//				watchDog1204 = 0;
 				update_before_correcting( 61, deltaLinearMessage, MESSAGE_MASK_CORRECTION_61);
 				if(deltaLinearMessage.a_getter(13) & B4)
 				{
