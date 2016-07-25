@@ -313,9 +313,13 @@ int main(int argc, char* argv[]) {
 					time_t t = time(0); // get time now
 					struct tm tm = *localtime( & t );
 					fprintf(results_fp, "host: %s lastEqToCorrect: %d Thresh: %d pid:%d %d-%d-%dT%d:%d:%d   ", host, lastEquToCorrect, threshold1_print_level, pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-					for(int u=0;u<143;u++){
+					int counterNormalized = 0;
+					fprintf(results_fp, "starting from 106: ");
+					for(int u=106;u<143;u++){
+						counterNormalized += conformanceCounter[u] * pow(2, u-106);
 						fprintf(results_fp, "%u ", conformanceCounter[u]);
-					fprintf(results_fp, "\n");					
+					}
+					fprintf(results_fp, "counterNormalized = %d\n", counterNormalized);
 					fclose(results_fp);
 					start = std::chrono::system_clock::now();						
 				}					
