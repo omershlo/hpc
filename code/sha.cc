@@ -28,6 +28,7 @@ std::chrono::duration<double> elapsedSecondsTotal;
 
 int *gNumberOfCorrections;
 correctionSet **gEquationCorrections;
+std::chrono::seconds secs(30);
 
 // int *gNuMOfCorr;
 // correctionSet **gEquCorr;
@@ -111,6 +112,21 @@ void printStatistics(ModStat** correctionsIndices, int* pNumberOfCorrections, co
 
 
 int main(int argc, char* argv[]) {
+	pid_t pid = getpid();
+	char host[50];
+	gethostname(host, 50);
+	u32 M5to15[11];
+	FILE *results_fp;
+	time_t t = time(0);   // get time now
+	struct tm tm = *localtime( & t );
+	char datum[128];
+	sprintf(datum, "../sha_common_files/files/results-pid:%d-%d-%d-%dT%d:%d:%d", pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	printf("%s\n", datum);
+	const char* results_file_name = datum;//"../sha_common_files/files/results-" + tts;
+	cout << results_file_name << endl;
+	int threshold1_print_level = 120;
+	//int numOfMessages = 100000;
+	//int lastEquToCorrect = 142;	
 	conformanceToWrite = 130;
 
 	//read nb 90_105
@@ -180,8 +196,8 @@ int main(int argc, char* argv[]) {
 //	assert((fp_random = fopen("../sha_common_files/fixRandom1", "r")) != NULL);
 	assert((fp_random = fopen("/dev/urandom", "r")) != NULL);
 
-	while (continueSearch && (numberOfConformingMsg < numOfMessages)) {
-	//while (continueSearch) {
+	//while (continueSearch && (numberOfConformingMsg < numOfMessages)) {
+	while (continueSearch) {
 		while (newStack.empty()) {
 			SHA1 newMessage;
 			if (!initialize_random_message(newMessage, fp_random)) {
@@ -291,6 +307,18 @@ int main(int argc, char* argv[]) {
 					}
 					fprintf(stderr,"\n");
 				}
+				if((std::chrono::system_clock::now()- start) > secs)
+				{
+					results_fp = fopen(results_file_name, "a+");
+					time_t t = time(0); // get time now
+					struct tm tm = *localtime( & t );
+					fprintf(results_fp, "host: %s lastEqToCorrect: %d Thresh: %d pid:%d %d-%d-%dT%d:%d:%d   ", host, lastEquToCorrect, threshold1_print_level, pid, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+					for(int u=0;u<143;u++){
+						fprintf(results_fp, "%u ", conformanceCounter[u]);
+					fprintf(results_fp, "\n");					
+					fclose(results_fp);
+					start = std::chrono::system_clock::now();						
+				}					
 				numberOfConformingMsg++;
 				continue;
 			}
@@ -316,10 +344,6 @@ int main(int argc, char* argv[]) {
 //	fclose(fp_soretdNB);
 #if STATISTICS & MEASURE_CORRECTIONS_PROBABILITY
 	char statcorrfilename[100] = { 0 };
-	char host[50];
-	pid_t pid = 0;
-	gethostname(host, 50);
-	pid = getpid();
 	sprintf(statcorrfilename,"../sha_common_files/corr_prob/actual_correction:%s:%d", host,(unsigned) pid);
 	compute_and_print_corrections_statistics(statcorrfilename, gEquationCorrections, gNumberOfCorrections, false);
 
