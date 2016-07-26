@@ -12,11 +12,11 @@ def extract(data):
 def main():
 	phandles = []
 	n_args = len(sys.argv)
-	eqToStat = 100 if n_args<3 else int(sys.argv[2])
+	#eqToStat = 100 if n_args<3 else int(sys.argv[2])
 	number_of_process = 1 if n_args<2 else int(sys.argv[1])
-	print "running with %s process, eqtoBreak=142, eqToStat=%s" %(number_of_process, eqToStat)
+	print "running with %s process, eqtoBreak=142, eqToStat=%s" %(number_of_process, 106)
 	for x in range(0, number_of_process):
-		phandles.append (subprocess.Popen(['taskset', '-c', '%s' %(x,), './sha', '142', '%d'  % (eqToStat,) ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+		phandles.append (subprocess.Popen(['taskset', '-c', '%s' %(x,), './sha', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
 	exit_codes = [p.communicate() for p in phandles]
 	
 
