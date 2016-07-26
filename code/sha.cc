@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 	printf("%s\n", datum);
 	const char* results_file_name = datum;//"../sha_common_files/files/results-" + tts;
 	cout << results_file_name << endl;
-	int threshold1_print_level = 120;
+	int threshold1_print_level = 106;
 	//int numOfMessages = 100000;
 	//int lastEquToCorrect = 142;	
 	conformanceToWrite = 130;
