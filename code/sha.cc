@@ -7,6 +7,7 @@
 #undef TEST_DUPLICATES
 #define NUM_OF_EQU 42
 
+//omer test1
 int numberOfNB;
 int conformanceToWrite;
 char pathToMessages[] = "../sha_common_files/messages/";
